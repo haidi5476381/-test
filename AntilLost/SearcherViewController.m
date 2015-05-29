@@ -233,7 +233,7 @@
         }
     };
     
-    testTimer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(test) userInfo:nil repeats:YES];
+  //  testTimer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(test) userInfo:nil repeats:YES];
     
 }
 
@@ -1349,16 +1349,16 @@
 //    [Global getInstance].peripheral = peripheral;
 
     
-    
-
-    
+    // add by haidi 5.29
+    [Global getInstance].isConnect = NO;
+    //
     //自动连接
-    if ([Global getInstance].isConnect == NO)
-    {
-        
-    }
-    else
-    {
+//    if ([Global getInstance].isConnect == NO)
+//    {
+//        
+//    }
+//    else
+//    {
         self.timer_smart = [NSTimer scheduledTimerWithTimeInterval:1.0
                                                             target:self
                                                           selector:@selector(smartConnect)
@@ -1366,7 +1366,7 @@
                                                            repeats:1.0];
         [[NSRunLoop currentRunLoop] addTimer:self.timer forMode:NSDefaultRunLoopMode];
 
-    }
+  //  }
 
     
 //    NSString *name = [NSString stringWithFormat:@"%@已断开连接",peripheral.name];
@@ -1483,6 +1483,9 @@
 -(void)centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 {
     NSLog(@"%@",error);
+    [Global getInstance].isConnect = NO;
+    
+    
 }
 
 -(void)peripheralDidUpdateRSSI:(CBPeripheral *)peripheral error:(NSError *)error
@@ -1920,32 +1923,79 @@
 
 - (void)playMusic
 {
-    AVAudioSession *session = [AVAudioSession sharedInstance];
-    [session setActive:YES error:nil];
-    [session setCategory:AVAudioSessionCategoryPlayback error:nil];
     
     
-    
-    //让app支持接受远程控制事件
-    [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
-    
-//    //播放背景音乐
-   NSString *musicPath = [[NSBundle mainBundle] pathForResource:@"电子警报音效" ofType:@"mp3"];//以前文件名为 “电子警报音效”
-//    NSURL *url = [[NSURL alloc] initFileURLWithPath:musicPath];
-//    
-////    // 创建播放器
-////    AVAudioPlayer *player = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:nil];
-////    [player prepareToPlay];
-////    [player setVolume:1];
-////    player.numberOfLoops = 1; //设置音乐播放次数  -1为一直循环
-////    [player play]; //播放
-
-    SystemSoundID soundId;
-    AudioServicesCreateSystemSoundID((__bridge CFURLRef)[NSURL fileURLWithPath:musicPath], &soundId);
-    AudioServicesPlaySystemSound(soundId);
-    //震动
-    AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
-
+    //自动连接
+    if ([Global getInstance].isConnect == YES)
+    {
+        for (NSMutableDictionary *dic  in [Global getInstance].peripheralList)
+        {
+            CBPeripheral * p = [dic objectForKey:@"device"];
+            if (_peripheral.identifier == p.identifier)
+            {
+                SetModel * model = [dic objectForKey:@"model"];
+                if (model!= nil)
+                {
+                    if (model.isRing == NO)
+                    {
+                        
+                    }
+                    else
+                    {
+                        //  [self toRing];
+                        AVAudioSession *session = [AVAudioSession sharedInstance];
+                        [session setActive:YES error:nil];
+                        [session setCategory:AVAudioSessionCategoryPlayback error:nil];
+                        
+                        //让app支持接受远程控制事件
+                        [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
+                        
+                        //    //播放背景音乐
+                        NSString *musicPath = [[NSBundle mainBundle] pathForResource:@"电子警报音效" ofType:@"mp3"];//以前文件名为 “电子警报音效”
+                        
+                        SystemSoundID soundId;
+                        AudioServicesCreateSystemSoundID((__bridge CFURLRef)[NSURL fileURLWithPath:musicPath], &soundId);
+                        AudioServicesPlaySystemSound(soundId);
+                        //震动
+                    }
+                    
+                    if (model.isShake == NO)
+                    {
+                        
+                    }
+                    else
+                    {
+                        //                    [self toShark];
+                        //震动
+                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+                    }
+                    
+                    
+                }
+                else
+                {
+                    AVAudioSession *session = [AVAudioSession sharedInstance];
+                    [session setActive:YES error:nil];
+                    [session setCategory:AVAudioSessionCategoryPlayback error:nil];
+                    
+                    //让app支持接受远程控制事件
+                    [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
+                    
+                    //    //播放背景音乐
+                    NSString *musicPath = [[NSBundle mainBundle] pathForResource:@"电子警报音效" ofType:@"mp3"];//以前文件名为 “电子警报音效”
+                    SystemSoundID soundId;
+                    AudioServicesCreateSystemSoundID((__bridge CFURLRef)[NSURL fileURLWithPath:musicPath], &soundId);
+                    AudioServicesPlaySystemSound(soundId);
+                    //震动
+                    AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+                    
+                }
+                
+                
+            }
+        }
+    }
+ 
 }
 
 
