@@ -24,7 +24,8 @@
     int m_nPayment;
     UIImageView *imgBox_one;
     UIImageView *imgBox_two;
-
+    NSMutableDictionary* saveDict;
+    
 }
 
 @end
@@ -37,7 +38,7 @@
     if (self) {
         // Custom initialization
         //self.tabBarItem.image = [UIImage imageNamed:@"set.png"];
-//        [self.tabBarItem setFinishedSelectedImage:[UIImage imageNamed:@"set.png"] withFinishedUnselectedImage:[UIImage imageNamed:@"set.png"]];
+        //        [self.tabBarItem setFinishedSelectedImage:[UIImage imageNamed:@"set.png"] withFinishedUnselectedImage:[UIImage imageNamed:@"set.png"]];
     }
     return self;
 }
@@ -45,6 +46,13 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+
+    NSMutableDictionary* beforeSavDict = [[NSUserDefaults standardUserDefaults] objectForKey:@"save"];
+    if (beforeSavDict) {
+        saveDict = beforeSavDict;
+    }else  {
+        saveDict = [[NSMutableDictionary alloc] initWithCapacity:0];
+    }
     if ([Global getInstance].language ==1)
     {
         self.title = @"Settings";
@@ -54,20 +62,20 @@
         self.title = @"设置";
         
     }
-
+    
     // Do any additional setup after loading the view.
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7)
     {
         self.edgesForExtendedLayout = UIRectEdgeNone;
-
+        
     }
     self.view.backgroundColor = [UIColor whiteColor];
-//    UIImageView *backView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"back3.png"]];
-//    backView.frame = CGRectMake(0, 0, kDeviceWidth, kDeviceHeight);
-//    [self.view addSubview:backView];
-//    [self.navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:@"navigation.png"] forBarMetrics:UIBarMetricsDefault];
+    //    UIImageView *backView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"back3.png"]];
+    //    backView.frame = CGRectMake(0, 0, kDeviceWidth, kDeviceHeight);
+    //    [self.view addSubview:backView];
+    //    [self.navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:@"navigation.png"] forBarMetrics:UIBarMetricsDefault];
     
-//    UIBarButtonItem *rightAction = [[UIBarButtonItem alloc]initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(selectRightAction:)];
+    //    UIBarButtonItem *rightAction = [[UIBarButtonItem alloc]initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(selectRightAction:)];
     
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
     if ([Global getInstance].language ==1)
@@ -77,13 +85,13 @@
     else
     {
         [btn setTitle:@"保存" forState:UIControlStateNormal];
-
+        
     }
     [btn setTitleColor:hexStringToColor(@"ec1c8c") forState:UIControlStateNormal];
     btn.frame = CGRectMake(0, 0, 80, 44);
     [btn addTarget:self action:@selector(selectRightAction:) forControlEvents:UIControlEventTouchUpInside];
     UIBarButtonItem *rightAction = [[UIBarButtonItem alloc]initWithCustomView:btn];
-
+    
     
     self.navigationItem.rightBarButtonItem = rightAction;
     
@@ -96,15 +104,15 @@
     [self.view addSubview:_table];
     
     
-//    UILabel *bottomLabel = [[UILabel alloc]initWithFrame:CGRectMake(0, [UIScreen mainScreen].bounds.size.height -108, 320, 44)];
-//    bottomLabel.text = @"解除绑定";
-//    bottomLabel.tag = 309;
-//    bottomLabel.userInteractionEnabled = YES;
-//    bottomLabel.textColor = hexStringToColor(COLORL);
-//    bottomLabel.backgroundColor = [UIColor whiteColor];
-//    bottomLabel.textAlignment = NSTextAlignmentCenter;
-//    bottomLabel.font =[UIFont systemFontOfSize:14];
-//    [self.view addSubview:bottomLabel];
+    //    UILabel *bottomLabel = [[UILabel alloc]initWithFrame:CGRectMake(0, [UIScreen mainScreen].bounds.size.height -108, 320, 44)];
+    //    bottomLabel.text = @"解除绑定";
+    //    bottomLabel.tag = 309;
+    //    bottomLabel.userInteractionEnabled = YES;
+    //    bottomLabel.textColor = hexStringToColor(COLORL);
+    //    bottomLabel.backgroundColor = [UIColor whiteColor];
+    //    bottomLabel.textAlignment = NSTextAlignmentCenter;
+    //    bottomLabel.font =[UIFont systemFontOfSize:14];
+    //    [self.view addSubview:bottomLabel];
     
     
     //提示
@@ -117,8 +125,8 @@
     vi.hidden = YES;
     vi.tag = 7001;
     [self.view addSubview:vi];
-
-
+    
+    
     
 }
 
@@ -132,25 +140,49 @@
     else if (_stage_two.selected == YES)
     {
         [Global getInstance].sliderValue = Stage_two;
-
+        
     }
     else if (_stage_three.selected == YES)
     {
         [Global getInstance].sliderValue = Stage_three;
-
+        
     }
     
     
     
     SetModel * model = [[SetModel alloc]init];
     model.name = _perName.text;
+    
+    // 保存外设的名字
+    
+    
+    
+    //
     model.isContent = _fangdiu.on;
     model.style = m_nPayment;
     model.distance =  _slider.value;
     model.isShake = _zhendong.on;
     model.isRing = _linSheng.on;
     model.isBangDing = _bangding.on;
+    
+    
+    
+    
     CBPeripheral *per = [self.dataDic objectForKey:@"device"];
+
+    
+    /**
+     * 保存外设的名字根据uuid add by haidi
+     */
+   
+
+    [saveDict setValue:[NSNumber numberWithBool:model.isShake] forKey:@"isShake"];
+    [saveDict setValue:[NSNumber numberWithBool:model.isRing] forKey:@"isRing"];
+    
+    [[NSUserDefaults standardUserDefaults] setValue:saveDict forKey:@"save"];
+    [[NSUserDefaults standardUserDefaults] setObject:_perName.text forKey:per.identifier.UUIDString];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+ 
     //保存到全局变量
     for (NSMutableDictionary *dic in [Global getInstance].peripheralList)
     {
@@ -166,23 +198,30 @@
     {
         [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:@"bangding"];
         [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:@"bangdingName"];
-
+        
     }
     
     [Global getInstance].isChange = YES;
-//    [Global getInstance].sliderValue = _slider.value;
+    //    [Global getInstance].sliderValue = _slider.value;
     [Global getInstance].isConnect = _fangdiu.on;
     [Global getInstance].jiebang = _bangding.on;
-
+    
     if ([Global getInstance].language ==1)
     {
-        AlertWithMessage(@"Information saved successfully");
+        
+        
+        // AlertWithMessage(@"Information saved successfully");
+        
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"" message:@"Information saved successfully" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+        [alert show];
     }
     else
     {
-        AlertWithMessage(@"信息保存成功");
+        // AlertWithMessage(@"信息保存成功");
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"" message:@"信息保存成功" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+        [alert show];
     }
-
+    
     
     //解除绑定
     
@@ -190,7 +229,12 @@
     {
         //提示绑定成功
         UILabel *la = (UILabel *)[self.view viewWithTag:7001];
-        la.text = @"解除绑定成功";
+        
+        if ([Global getInstance].language == 1) {
+            la.text = @"Unbound success";
+        }else {
+            la.text = @"解除绑定成功";
+        }
         la.hidden = NO;
         [UIView animateWithDuration:2 animations:^{
             la.alpha = 1;
@@ -200,7 +244,7 @@
         }];
         
     }
-
+    
     
     
 }
@@ -232,7 +276,7 @@
     {
         return 1;
     }
-
+    
     else
     {
         return 1;
@@ -262,18 +306,24 @@
         else
         {
             CBPeripheral *per = [self.dataDic objectForKey:@"device"];
-            _perName.text = per.name;
+            // add by haidi
+            NSString* perName = [[NSUserDefaults standardUserDefaults] objectForKey:per.identifier.UUIDString];
+            if (perName) {
+                _perName.text = perName;
+            }else {
+                _perName.text = per.name;
+            }
             
         }
         [oneCell.contentView addSubview:_perName];
         return oneCell;
     }
     //----------------------11111111111111
-
+    
     if (indexPath.section == 1)
     {
         UITableViewCell *twoCell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"twoCell"];
-
+        
         for (UIView *v in twoCell.contentView.subviews)
         {
             [v removeFromSuperview];
@@ -302,13 +352,13 @@
         [twoCell.contentView addSubview:_fangdiu];
         return twoCell;
     }
-
+    
     
     //---------------------3
     if (indexPath.section == 2)
     {
         UITableViewCell *threeCell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"threeCell"];
-
+        
         for (UIView *v in threeCell.contentView.subviews)
         {
             [v removeFromSuperview];
@@ -383,13 +433,16 @@
         return threeCell;
         
     }
-
+    
     
     /////------------45
     if (indexPath.section == 3)
     {
+        
+        
         UITableViewCell *fourCell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"fourCell"];
-
+        
+        
         for (UIView *v in fourCell.contentView.subviews)
         {
             [v removeFromSuperview];
@@ -414,6 +467,8 @@
             if (model != nil)
             {
                 _zhendong.on = model.isShake;
+            }else if (saveDict) {
+                _zhendong.on = [[saveDict objectForKey:@"isShake"] boolValue];
             }
             else
             {
@@ -436,12 +491,17 @@
             }
             
             _linSheng = [[UISwitch alloc]initWithFrame:CGRectMake(220, 8, 60, 30)];
+            [_linSheng setOn:[[saveDict objectForKey:@"isRing"] boolValue] animated:YES];
             [_linSheng addTarget:self action:@selector(liShengAction:) forControlEvents:UIControlEventValueChanged];
             SetModel * model = [self.dataDic objectForKey:@"model"];
             if (model != nil)
             {
                 _linSheng.on = model.isRing;
+            } else if (saveDict) {
+                
+                 _linSheng.on = [[saveDict objectForKey:@"isRing"] boolValue];
             }
+            
             else
             {
                 _linSheng.on = YES;
@@ -488,7 +548,7 @@
     else if (indexPath.section == 4)
     {
         UITableViewCell *fiveCell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"fiveCell"];
-
+        
         for (UIView *v in fiveCell.contentView.subviews)
         {
             [v removeFromSuperview];
@@ -524,351 +584,351 @@
         return fiveCell;
         
     }
-
     
     
-//    
-//    static NSString *identified = @"cell";
-//    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:identified];
-//    if (cell == nil)
-//    {
-//        cell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:identified];
-//        if (indexPath.section == 0)
-//        {
-//            for (UIView *v in cell.contentView.subviews)
-//            {
-//                [v removeFromSuperview];
-//            }
-//            if (_perName ==nil)
-//            {
-//                _perName = [[UITextField alloc]initWithFrame:CGRectMake(20, 0, 300, 40)];
-//                _perName.delegate = self;
-//            }
-//            SetModel * model = [self.dataDic objectForKey:@"model"];
-//            if (model != nil &&model.name.length >0)
-//            {
-//                _perName.text = model.name;
-//            }
-//            else
-//            {
-//                 CBPeripheral *per = [self.dataDic objectForKey:@"device"];
-//                _perName.text = per.name;
-//
-//            }
-//            [cell.contentView addSubview:_perName];
-//        }
-//        if (indexPath.section == 1)
-//        {
-//            for (UIView *v in cell.contentView.subviews)
-//            {
-//                [v removeFromSuperview];
-//            }
-//
-//            if (_perState == nil)
-//            {
-//                _perState = [[UITextField alloc]initWithFrame:CGRectMake(20, 0, 300, 40)];
-//            }
-//            if ([Global getInstance].language ==1)
-//            {
-//                _perState.text = @"Connecting";
-//
-//            }
-//            else
-//            {
-//                _perState.text = @"正在连接";
-//
-//            }
-//            _perState.userInteractionEnabled = NO;
-//            [cell.contentView addSubview:_perState];
-//            _fangdiu = [[UISwitch alloc]initWithFrame:CGRectMake(220, 8, 60, 30)];
-//            _fangdiu.on = YES;
-//            [_fangdiu addTarget:self action:@selector(fangdiuAction:) forControlEvents:UIControlEventValueChanged];
-//            _fangdiu.on = YES;
-//            [cell.contentView addSubview:_fangdiu];
-//        }
-//        
-//        if (indexPath.section == 2)
-//        {
-//            for (UIView *v in cell.contentView.subviews)
-//            {
-//                [v removeFromSuperview];
-//            }
-//
-//            //3个按钮
-//            
-////            _stage_one = [UIButton buttonWithType:UIButtonTypeCustom];
-////            _stage_one.frame = CGRectMake(0, 0, cell.frame.size.width/2, cell.frame.size.height-3);
-////            _stage_one.titleLabel.font = [UIFont systemFontOfSize:15];
-////            [_stage_one setTitle:@"近" forState:UIControlStateNormal];
-////            [_stage_one setTitleColor:[UIColor blackColor] forState:UIControlStateSelected];
-////            [_stage_one setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-////            [_stage_one addTarget:self action:@selector(btnAction:) forControlEvents:UIControlEventTouchUpInside];
-////            [cell.contentView addSubview:_stage_one];
-//            
-//            
-//            
-//            
-//            
-//            //近
-//            _stage_two = [UIButton buttonWithType:UIButtonTypeCustom];
-//            _stage_two.frame = CGRectMake(0, 0, cell.frame.size.width/2, cell.frame.size.height-3);
-//            _stage_two.titleLabel.font = [UIFont systemFontOfSize:15];
-////            _stage_two.selected = YES;
-////            _stage_two.backgroundColor = hexStringToColor(COLORL);
-//            [_stage_two setTitleColor:[UIColor blackColor] forState:UIControlStateSelected];
-//            [_stage_two setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-//            [_stage_two addTarget:self action:@selector(btnAction:) forControlEvents:UIControlEventTouchUpInside];
-//            if ([Global getInstance].language == 1)
-//            {
-//                [_stage_two setTitle:@"close" forState:UIControlStateNormal];
-//
-//            }
-//            else
-//            {
-//                [_stage_two setTitle:@"近" forState:UIControlStateNormal];
-// 
-//            }
-//            [cell.contentView addSubview:_stage_two];
-//
-//            
-//            
-//            
-//            //远
-//            _stage_three = [UIButton buttonWithType:UIButtonTypeCustom];
-//            _stage_three.frame = CGRectMake(cell.frame.size.width/2, 0, cell.frame.size.width/2, cell.frame.size.height-3);
-//            [_stage_three setTitleColor:[UIColor blackColor] forState:UIControlStateSelected];
-//            [_stage_three setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-//            _stage_three.titleLabel.font = [UIFont systemFontOfSize:15];
-//            if ([Global getInstance].language == 1)
-//            {
-//                [_stage_three setTitle:@"Far" forState:UIControlStateNormal];
-//                
-//            }
-//            else
-//            {
-//                [_stage_three setTitle:@"远" forState:UIControlStateNormal];
-//
-//            }
-//            [_stage_three addTarget:self action:@selector(btnAction:) forControlEvents:UIControlEventTouchUpInside];
-//            [cell.contentView addSubview:_stage_three];
-//
-//            
-//            if ([Global getInstance].sliderValue == Stage_one)
-//            {
-//                _stage_one.selected = YES;
-//                _stage_one.backgroundColor = hexStringToColor(COLORL);
-//            }
-//            else if ([Global getInstance].sliderValue == Stage_two)
-//            {
-//                _stage_two.selected = YES;
-//                _stage_two.backgroundColor = hexStringToColor(COLORL);
-//            }
-//            else if ([Global getInstance].sliderValue == Stage_three)
-//            {
-//                _stage_three.selected = YES;
-//                _stage_three.backgroundColor = hexStringToColor(COLORL);
-//            }
-//            else
-//            {
-//                _stage_two.selected = YES;
-//                _stage_two.backgroundColor = hexStringToColor(COLORL);
-//
-//            }
-//
-//            
-//            
-////            UIImageView *phone = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"iphone.png"]];
-////            phone.frame = CGRectMake(1, 8, 25, 30);
-////            [cell.contentView addSubview:phone];
-////            
-////            UIImageView *blue = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"wireless.png"]];
-////            blue.frame = CGRectMake(277, 8, 25, 30);
-////            [cell.contentView addSubview:blue];
-////            
-////            _slider = [[UISlider alloc]initWithFrame:CGRectMake(32, 15, 240, 10)];
-////            _slider.continuous = NO;
-////            _slider.maximumValue = 10;
-////            _slider.minimumValue = 2;
-////            _slider.value = 6.0;
-////            [_slider addTarget:self action:@selector(distanceSlider) forControlEvents:UIControlEventTouchDragInside];
-////            [cell.contentView addSubview:_slider];
-////            
-////            UILabel *minLabel = [[UILabel alloc]initWithFrame:CGRectMake(10, 32, 30, 30)];
-////            minLabel.text = @"2";
-////            minLabel.backgroundColor = [UIColor clearColor];
-////            [cell.contentView addSubview:minLabel];
-////            
-////            UILabel *maxLabel = [[UILabel alloc]initWithFrame:CGRectMake(275, 32, 30, 30)];
-////            maxLabel.text = @"10";
-////            maxLabel.backgroundColor = [UIColor clearColor];
-////            [cell.contentView addSubview:maxLabel];
-////            
-////            UILabel *distanceLabel = [[UILabel alloc]initWithFrame:CGRectMake(130, 10, 60, 30)];
-////            //distanceLabel.text = @"距离";
-////            distanceLabel.tag = 1;
-////            distanceLabel.backgroundColor = [UIColor clearColor];
-////            [cell.contentView addSubview:distanceLabel];
-//            
-//            
-//            
-//            
-//            //        NSArray *segmentedArray = [[NSArray alloc]initWithObjects:@"5米",@"10米",@"15米",@"20米",nil];
-//            //        _sege = [[UISegmentedControl alloc]initWithItems:segmentedArray];
-//            //        _sege.segmentedControlStyle = UISegmentedControlStylePlain;
-//            //        _sege.frame = CGRectMake(25, 8, 250, 30);
-//            //        [_sege addTarget:self action:@selector(segeAction:) forControlEvents:UIControlEventValueChanged];
-//            //        [cell.contentView addSubview:_sege];
-//            
-//        }
-//        else if (indexPath.section == 3)
-//        {
-//            for (UIView *v in cell.contentView.subviews)
-//            {
-//                [v removeFromSuperview];
-//            }
-//
-//            if (indexPath.row == 0)
-//            {
-//                if ([Global getInstance].language ==1)
-//                {
-//                    cell.textLabel.text = @"Shock";
-//                    
-//                }
-//                else
-//                {
-//                    cell.textLabel.text = @"震动";
-//
-//                }
-//                
-//                _zhendong = [[UISwitch alloc]initWithFrame:CGRectMake(220, 8, 60, 30)];
-//                [_zhendong addTarget:self action:@selector(zhendongAction:) forControlEvents:UIControlEventValueChanged];
-//                SetModel * model = [self.dataDic objectForKey:@"model"];
-//                if (model != nil)
-//                {
-//                   _zhendong.on = model.isShake;
-//                }
-//                else
-//                {
-//                    _zhendong.on = YES;
-//                }
-//
-//                [cell.contentView addSubview:_zhendong];
-//            }
-//            if (indexPath.row == 1)
-//            {
-//                if ([Global getInstance].language ==1)
-//                {
-//                    cell.textLabel.text = @"Ring";
-//                    
-//                }
-//                else
-//                {
-//                    cell.textLabel.text = @"铃声";
-//                    
-//                }
-//                
-//                _linSheng = [[UISwitch alloc]initWithFrame:CGRectMake(220, 8, 60, 30)];
-//                [_linSheng addTarget:self action:@selector(liShengAction:) forControlEvents:UIControlEventValueChanged];
-//                SetModel * model = [self.dataDic objectForKey:@"model"];
-//                if (model != nil)
-//                {
-//                    _linSheng.on = model.isRing;
-//                }
-//                else
-//                {
-//                    _linSheng.on = YES;
-//                }
-//                
-//                [cell.contentView addSubview:_linSheng];
-//            }
-//
-//            
-//            if (indexPath.row == 3)
-//            {
-//                if ([Global getInstance].language ==1)
-//                {
-//                    cell.textLabel.text = @"Disconnect ringtone";
-//                    
-//                }
-//                else
-//                {
-//                    cell.textLabel.text = @"设备断开铃声";
-//                    
-//                }
-//                
-//            }
-//
-//            if (indexPath.row == 2)
-//            {
-//                if ([Global getInstance].language ==1)
-//                {
-//                    cell.textLabel.text = @"Ultra-distance ringtones";
-//                    
-//                }
-//                else
-//                {
-//                    cell.textLabel.text = @"超距铃声";
-//
-//                }
-//
-////                cell.accessoryType = UITableViewCellAccessoryDetailDisclosureButton;
-//            }
-//            
-//        }
-//        
-//        else if (indexPath.section == 4)
-//        {
-//            for (UIView *v in cell.contentView.subviews)
-//            {
-//                [v removeFromSuperview];
-//            }
-//
-//            if (indexPath.row == 0)
-//            {
-//                if ([Global getInstance].language ==1)
-//                {
-//                    cell.textLabel.text = @"Shock";
-//                    
-//                }
-//                else
-//                {
-//                    cell.textLabel.text = @"解除绑定";
-//                    
-//                }
-//                
-//                _bangding = [[UISwitch alloc]initWithFrame:CGRectMake(220, 8, 60, 30)];
-//                [_bangding addTarget:self action:@selector(bangding:) forControlEvents:UIControlEventValueChanged];
-////                SetModel *model = [self.dataDic objectForKey:@"model"];
-////                if (model != nil)
-////                {
-////                    _bangding.on = model.isBangDing;
-////                }
-////                else
-////                {
-//                    _bangding.on = NO;
-////                }
-//                
-//                [cell.contentView addSubview:_bangding];
-//            }
-//
-//        }
-////        else if (indexPath.section == 5)
-////        {
-////            UIProgressView *pro = [[UIProgressView alloc]initWithProgressViewStyle:UIProgressViewStyleDefault];
-////            pro.frame = CGRectMake(15, 20, 230, 20);
-////            pro.progress = 0.5;
-////            
-////            UILabel *la = [[UILabel alloc]initWithFrame:CGRectMake(255, 8, 50, 30)];
-////            la.backgroundColor = [UIColor clearColor];
-////            la.text = [NSString stringWithFormat:@"%0.0f%%",pro.progress*100];
-////            [cell.contentView addSubview:la];
-////            [cell.contentView addSubview:pro];
-////        }
-//
-//        
-//
-//    }
-//        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    
+    //
+    //    static NSString *identified = @"cell";
+    //    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:identified];
+    //    if (cell == nil)
+    //    {
+    //        cell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:identified];
+    //        if (indexPath.section == 0)
+    //        {
+    //            for (UIView *v in cell.contentView.subviews)
+    //            {
+    //                [v removeFromSuperview];
+    //            }
+    //            if (_perName ==nil)
+    //            {
+    //                _perName = [[UITextField alloc]initWithFrame:CGRectMake(20, 0, 300, 40)];
+    //                _perName.delegate = self;
+    //            }
+    //            SetModel * model = [self.dataDic objectForKey:@"model"];
+    //            if (model != nil &&model.name.length >0)
+    //            {
+    //                _perName.text = model.name;
+    //            }
+    //            else
+    //            {
+    //                 CBPeripheral *per = [self.dataDic objectForKey:@"device"];
+    //                _perName.text = per.name;
+    //
+    //            }
+    //            [cell.contentView addSubview:_perName];
+    //        }
+    //        if (indexPath.section == 1)
+    //        {
+    //            for (UIView *v in cell.contentView.subviews)
+    //            {
+    //                [v removeFromSuperview];
+    //            }
+    //
+    //            if (_perState == nil)
+    //            {
+    //                _perState = [[UITextField alloc]initWithFrame:CGRectMake(20, 0, 300, 40)];
+    //            }
+    //            if ([Global getInstance].language ==1)
+    //            {
+    //                _perState.text = @"Connecting";
+    //
+    //            }
+    //            else
+    //            {
+    //                _perState.text = @"正在连接";
+    //
+    //            }
+    //            _perState.userInteractionEnabled = NO;
+    //            [cell.contentView addSubview:_perState];
+    //            _fangdiu = [[UISwitch alloc]initWithFrame:CGRectMake(220, 8, 60, 30)];
+    //            _fangdiu.on = YES;
+    //            [_fangdiu addTarget:self action:@selector(fangdiuAction:) forControlEvents:UIControlEventValueChanged];
+    //            _fangdiu.on = YES;
+    //            [cell.contentView addSubview:_fangdiu];
+    //        }
+    //
+    //        if (indexPath.section == 2)
+    //        {
+    //            for (UIView *v in cell.contentView.subviews)
+    //            {
+    //                [v removeFromSuperview];
+    //            }
+    //
+    //            //3个按钮
+    //
+    ////            _stage_one = [UIButton buttonWithType:UIButtonTypeCustom];
+    ////            _stage_one.frame = CGRectMake(0, 0, cell.frame.size.width/2, cell.frame.size.height-3);
+    ////            _stage_one.titleLabel.font = [UIFont systemFontOfSize:15];
+    ////            [_stage_one setTitle:@"近" forState:UIControlStateNormal];
+    ////            [_stage_one setTitleColor:[UIColor blackColor] forState:UIControlStateSelected];
+    ////            [_stage_one setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    ////            [_stage_one addTarget:self action:@selector(btnAction:) forControlEvents:UIControlEventTouchUpInside];
+    ////            [cell.contentView addSubview:_stage_one];
+    //
+    //
+    //
+    //
+    //
+    //            //近
+    //            _stage_two = [UIButton buttonWithType:UIButtonTypeCustom];
+    //            _stage_two.frame = CGRectMake(0, 0, cell.frame.size.width/2, cell.frame.size.height-3);
+    //            _stage_two.titleLabel.font = [UIFont systemFontOfSize:15];
+    ////            _stage_two.selected = YES;
+    ////            _stage_two.backgroundColor = hexStringToColor(COLORL);
+    //            [_stage_two setTitleColor:[UIColor blackColor] forState:UIControlStateSelected];
+    //            [_stage_two setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    //            [_stage_two addTarget:self action:@selector(btnAction:) forControlEvents:UIControlEventTouchUpInside];
+    //            if ([Global getInstance].language == 1)
+    //            {
+    //                [_stage_two setTitle:@"close" forState:UIControlStateNormal];
+    //
+    //            }
+    //            else
+    //            {
+    //                [_stage_two setTitle:@"近" forState:UIControlStateNormal];
+    //
+    //            }
+    //            [cell.contentView addSubview:_stage_two];
+    //
+    //
+    //
+    //
+    //            //远
+    //            _stage_three = [UIButton buttonWithType:UIButtonTypeCustom];
+    //            _stage_three.frame = CGRectMake(cell.frame.size.width/2, 0, cell.frame.size.width/2, cell.frame.size.height-3);
+    //            [_stage_three setTitleColor:[UIColor blackColor] forState:UIControlStateSelected];
+    //            [_stage_three setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    //            _stage_three.titleLabel.font = [UIFont systemFontOfSize:15];
+    //            if ([Global getInstance].language == 1)
+    //            {
+    //                [_stage_three setTitle:@"Far" forState:UIControlStateNormal];
+    //
+    //            }
+    //            else
+    //            {
+    //                [_stage_three setTitle:@"远" forState:UIControlStateNormal];
+    //
+    //            }
+    //            [_stage_three addTarget:self action:@selector(btnAction:) forControlEvents:UIControlEventTouchUpInside];
+    //            [cell.contentView addSubview:_stage_three];
+    //
+    //
+    //            if ([Global getInstance].sliderValue == Stage_one)
+    //            {
+    //                _stage_one.selected = YES;
+    //                _stage_one.backgroundColor = hexStringToColor(COLORL);
+    //            }
+    //            else if ([Global getInstance].sliderValue == Stage_two)
+    //            {
+    //                _stage_two.selected = YES;
+    //                _stage_two.backgroundColor = hexStringToColor(COLORL);
+    //            }
+    //            else if ([Global getInstance].sliderValue == Stage_three)
+    //            {
+    //                _stage_three.selected = YES;
+    //                _stage_three.backgroundColor = hexStringToColor(COLORL);
+    //            }
+    //            else
+    //            {
+    //                _stage_two.selected = YES;
+    //                _stage_two.backgroundColor = hexStringToColor(COLORL);
+    //
+    //            }
+    //
+    //
+    //
+    ////            UIImageView *phone = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"iphone.png"]];
+    ////            phone.frame = CGRectMake(1, 8, 25, 30);
+    ////            [cell.contentView addSubview:phone];
+    ////
+    ////            UIImageView *blue = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"wireless.png"]];
+    ////            blue.frame = CGRectMake(277, 8, 25, 30);
+    ////            [cell.contentView addSubview:blue];
+    ////
+    ////            _slider = [[UISlider alloc]initWithFrame:CGRectMake(32, 15, 240, 10)];
+    ////            _slider.continuous = NO;
+    ////            _slider.maximumValue = 10;
+    ////            _slider.minimumValue = 2;
+    ////            _slider.value = 6.0;
+    ////            [_slider addTarget:self action:@selector(distanceSlider) forControlEvents:UIControlEventTouchDragInside];
+    ////            [cell.contentView addSubview:_slider];
+    ////
+    ////            UILabel *minLabel = [[UILabel alloc]initWithFrame:CGRectMake(10, 32, 30, 30)];
+    ////            minLabel.text = @"2";
+    ////            minLabel.backgroundColor = [UIColor clearColor];
+    ////            [cell.contentView addSubview:minLabel];
+    ////
+    ////            UILabel *maxLabel = [[UILabel alloc]initWithFrame:CGRectMake(275, 32, 30, 30)];
+    ////            maxLabel.text = @"10";
+    ////            maxLabel.backgroundColor = [UIColor clearColor];
+    ////            [cell.contentView addSubview:maxLabel];
+    ////
+    ////            UILabel *distanceLabel = [[UILabel alloc]initWithFrame:CGRectMake(130, 10, 60, 30)];
+    ////            //distanceLabel.text = @"距离";
+    ////            distanceLabel.tag = 1;
+    ////            distanceLabel.backgroundColor = [UIColor clearColor];
+    ////            [cell.contentView addSubview:distanceLabel];
+    //
+    //
+    //
+    //
+    //            //        NSArray *segmentedArray = [[NSArray alloc]initWithObjects:@"5米",@"10米",@"15米",@"20米",nil];
+    //            //        _sege = [[UISegmentedControl alloc]initWithItems:segmentedArray];
+    //            //        _sege.segmentedControlStyle = UISegmentedControlStylePlain;
+    //            //        _sege.frame = CGRectMake(25, 8, 250, 30);
+    //            //        [_sege addTarget:self action:@selector(segeAction:) forControlEvents:UIControlEventValueChanged];
+    //            //        [cell.contentView addSubview:_sege];
+    //
+    //        }
+    //        else if (indexPath.section == 3)
+    //        {
+    //            for (UIView *v in cell.contentView.subviews)
+    //            {
+    //                [v removeFromSuperview];
+    //            }
+    //
+    //            if (indexPath.row == 0)
+    //            {
+    //                if ([Global getInstance].language ==1)
+    //                {
+    //                    cell.textLabel.text = @"Shock";
+    //
+    //                }
+    //                else
+    //                {
+    //                    cell.textLabel.text = @"震动";
+    //
+    //                }
+    //
+    //                _zhendong = [[UISwitch alloc]initWithFrame:CGRectMake(220, 8, 60, 30)];
+    //                [_zhendong addTarget:self action:@selector(zhendongAction:) forControlEvents:UIControlEventValueChanged];
+    //                SetModel * model = [self.dataDic objectForKey:@"model"];
+    //                if (model != nil)
+    //                {
+    //                   _zhendong.on = model.isShake;
+    //                }
+    //                else
+    //                {
+    //                    _zhendong.on = YES;
+    //                }
+    //
+    //                [cell.contentView addSubview:_zhendong];
+    //            }
+    //            if (indexPath.row == 1)
+    //            {
+    //                if ([Global getInstance].language ==1)
+    //                {
+    //                    cell.textLabel.text = @"Ring";
+    //
+    //                }
+    //                else
+    //                {
+    //                    cell.textLabel.text = @"铃声";
+    //
+    //                }
+    //
+    //                _linSheng = [[UISwitch alloc]initWithFrame:CGRectMake(220, 8, 60, 30)];
+    //                [_linSheng addTarget:self action:@selector(liShengAction:) forControlEvents:UIControlEventValueChanged];
+    //                SetModel * model = [self.dataDic objectForKey:@"model"];
+    //                if (model != nil)
+    //                {
+    //                    _linSheng.on = model.isRing;
+    //                }
+    //                else
+    //                {
+    //                    _linSheng.on = YES;
+    //                }
+    //
+    //                [cell.contentView addSubview:_linSheng];
+    //            }
+    //
+    //
+    //            if (indexPath.row == 3)
+    //            {
+    //                if ([Global getInstance].language ==1)
+    //                {
+    //                    cell.textLabel.text = @"Disconnect ringtone";
+    //
+    //                }
+    //                else
+    //                {
+    //                    cell.textLabel.text = @"设备断开铃声";
+    //
+    //                }
+    //
+    //            }
+    //
+    //            if (indexPath.row == 2)
+    //            {
+    //                if ([Global getInstance].language ==1)
+    //                {
+    //                    cell.textLabel.text = @"Ultra-distance ringtones";
+    //
+    //                }
+    //                else
+    //                {
+    //                    cell.textLabel.text = @"超距铃声";
+    //
+    //                }
+    //
+    ////                cell.accessoryType = UITableViewCellAccessoryDetailDisclosureButton;
+    //            }
+    //
+    //        }
+    //
+    //        else if (indexPath.section == 4)
+    //        {
+    //            for (UIView *v in cell.contentView.subviews)
+    //            {
+    //                [v removeFromSuperview];
+    //            }
+    //
+    //            if (indexPath.row == 0)
+    //            {
+    //                if ([Global getInstance].language ==1)
+    //                {
+    //                    cell.textLabel.text = @"Shock";
+    //
+    //                }
+    //                else
+    //                {
+    //                    cell.textLabel.text = @"解除绑定";
+    //
+    //                }
+    //
+    //                _bangding = [[UISwitch alloc]initWithFrame:CGRectMake(220, 8, 60, 30)];
+    //                [_bangding addTarget:self action:@selector(bangding:) forControlEvents:UIControlEventValueChanged];
+    ////                SetModel *model = [self.dataDic objectForKey:@"model"];
+    ////                if (model != nil)
+    ////                {
+    ////                    _bangding.on = model.isBangDing;
+    ////                }
+    ////                else
+    ////                {
+    //                    _bangding.on = NO;
+    ////                }
+    //
+    //                [cell.contentView addSubview:_bangding];
+    //            }
+    //
+    //        }
+    ////        else if (indexPath.section == 5)
+    ////        {
+    ////            UIProgressView *pro = [[UIProgressView alloc]initWithProgressViewStyle:UIProgressViewStyleDefault];
+    ////            pro.frame = CGRectMake(15, 20, 230, 20);
+    ////            pro.progress = 0.5;
+    ////
+    ////            UILabel *la = [[UILabel alloc]initWithFrame:CGRectMake(255, 8, 50, 30)];
+    ////            la.backgroundColor = [UIColor clearColor];
+    ////            la.text = [NSString stringWithFormat:@"%0.0f%%",pro.progress*100];
+    ////            [cell.contentView addSubview:la];
+    ////            [cell.contentView addSubview:pro];
+    ////        }
+    //
+    //
+    //
+    //    }
+    //        cell.selectionStyle = UITableViewCellSelectionStyleNone;
     return nil;
 }
 
@@ -878,7 +938,7 @@
     {
         if ([Global  getInstance].language == 1)
         {
-          return  @"Renaming:";
+            return  @"Renaming:";
         }
         else
         {
@@ -886,7 +946,7 @@
         }
         return @"重命名:";
     }
-
+    
     if (section == 1)
     {
         if ([Global  getInstance].language == 1)
@@ -896,23 +956,23 @@
         else
         {
             return @"保持连接:";
-
+            
         }
-
+        
     }
-//    else if (section  == 2)
-//    {
-//        if ([Global  getInstance].language == 1)
-//        {
-//            return  @"Device Type:";
-//        }
-//        else
-//        {
-//            return @"设备类型:";
-//
-//        }
-//
-//    }
+    //    else if (section  == 2)
+    //    {
+    //        if ([Global  getInstance].language == 1)
+    //        {
+    //            return  @"Device Type:";
+    //        }
+    //        else
+    //        {
+    //            return @"设备类型:";
+    //
+    //        }
+    //
+    //    }
     else if (section == 2)
     {
         if ([Global  getInstance].language == 1)
@@ -922,9 +982,9 @@
         else
         {
             return @"报警距离:";
-
+            
         }
-
+        
     }
     if (section == 3)
     {
@@ -935,9 +995,9 @@
         else
         {
             return @"手机报警方式:";
-
+            
         }
-
+        
     }
     
     if (section == 4)
@@ -954,12 +1014,12 @@
         
     }
     
-
-//    if (section == 5)
-//    {
-//        return @"手环电量:";
-//    }
-
+    
+    //    if (section == 5)
+    //    {
+    //        return @"手环电量:";
+    //    }
+    
     else return nil;
     
 }
@@ -979,7 +1039,7 @@
     alarm.index = indexPath;
     alarm.delegate = self;
     [self.navigationController pushViewController:alarm animated:YES];
-
+    
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
@@ -990,15 +1050,17 @@
         {
             AlarmViewController *alarm = [[AlarmViewController alloc]init];
             alarm.type = 1;
+            alarm.dict = saveDict;
             [self.navigationController pushViewController:alarm animated:YES];
         }
         if (indexPath.row ==2)
         {
             AlarmViewController *alarm = [[AlarmViewController alloc]init];
             alarm.type = 2;
+            alarm.dict = saveDict;
             [self.navigationController pushViewController:alarm animated:YES];
         }
-
+        
     }
 }
 
@@ -1006,7 +1068,7 @@
 {
     UILabel *la =(UILabel *)[_table viewWithTag:1];
     la.text = [NSString stringWithFormat:@"%0.0f米",_slider.value];
-
+    
 }
 
 -(void)selectAlarm:(NSString *)name to:(NSIndexPath *)index
@@ -1030,7 +1092,7 @@
     {
         imgBox_two.image=[UIImage imageNamed:@"select_pay.png"];
         imgBox_one.image = [UIImage imageNamed:@"unselect_pay.png"];
-
+        
     }
     [_table reloadData];
 }
@@ -1046,7 +1108,7 @@
         _stage_one.backgroundColor = hexStringToColor(COLORL);
         _stage_two.backgroundColor = [UIColor whiteColor];
         _stage_three.backgroundColor = [UIColor whiteColor];
-
+        
         _stage_two.selected = NO;
         _stage_three.selected = NO;
     }
@@ -1059,19 +1121,19 @@
         _stage_one.backgroundColor = [UIColor whiteColor];
         _stage_two.backgroundColor = hexStringToColor(COLORL);
         _stage_three.backgroundColor = [UIColor whiteColor];
-
-
+        
+        
     }
     else
     {
         _stage_one.selected = NO;
         _stage_two.selected = NO;
         _stage_three.selected = YES;
-
+        
         _stage_one.backgroundColor = [UIColor whiteColor];
         _stage_two.backgroundColor = [UIColor whiteColor];
         _stage_three.backgroundColor = hexStringToColor(COLORL);
-
+        
     }
 }
 
@@ -1111,7 +1173,7 @@
         if ([Global getInstance].language ==1)
         {
             _perState.text = @"Connecting" ;
-
+            
         }
         
     }
@@ -1123,28 +1185,28 @@
             _perState.text = @"Disconnect" ;
             
         }
-
+        
     }
 }
 //震动开关
 -(void)zhendongAction:(id)sender
 {
     UISwitch *switchButton = (UISwitch*)sender;
-//    BOOL isButtonOn = [switchButton isOn];
-//    if (isButtonOn) {
-//        NSLog(@"震动开") ;
-//        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
-//       
-//    }else {
-//        NSLog(@"震动关") ;
-//    }
+    //    BOOL isButtonOn = [switchButton isOn];
+    //    if (isButtonOn) {
+    //        NSLog(@"震动开") ;
+    //        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+    //
+    //    }else {
+    //        NSLog(@"震动关") ;
+    //    }
 }
 
 - (void)liShengAction:(id)sender
 {
     UISwitch *switchButton = (UISwitch*)sender;
     BOOL isButtonOn = [switchButton isOn];
-
+    
 }
 
 
@@ -1154,7 +1216,7 @@
     
     UISwitch *switchButton = (UISwitch*)sender;
     
-
+    
     
 }
 
@@ -1171,13 +1233,13 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField;
 {
-//    if ([textField.text isEqualToString:@"\n"])
-//    {
-        [_perName resignFirstResponder];
-//        return NO;
-//    }
+    //    if ([textField.text isEqualToString:@"\n"])
+    //    {
+    [_perName resignFirstResponder];
+    //        return NO;
+    //    }
     return YES;
-
+    
 }
 
 - (void)linShengAction:(id)sender
@@ -1185,13 +1247,13 @@
     UISwitch *switchButton = (UISwitch*)sender;
     BOOL isButtonOn = [switchButton isOn];
     if (isButtonOn) {
-//        NSLog(@"震动开") ;
-//        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+        //        NSLog(@"震动开") ;
+        //        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
         
     }else {
-//        NSLog(@"震动关") ;
+        //        NSLog(@"震动关") ;
     }
-
+    
 }
 
 - (void)didReceiveMemoryWarning
@@ -1201,14 +1263,14 @@
 }
 
 /*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
-{
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
+ #pragma mark - Navigation
+ 
+ // In a storyboard-based application, you will often want to do a little preparation before navigation
+ - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+ {
+ // Get the new view controller using [segue destinationViewController].
+ // Pass the selected object to the new view controller.
+ }
+ */
 
 @end

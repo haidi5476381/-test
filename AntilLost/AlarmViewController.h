@@ -24,5 +24,6 @@
 @property (strong,nonatomic) NSIndexPath *index;
 
 @property (assign,nonatomic)  NSInteger   type;
+@property (nonatomic,strong) NSMutableDictionary* dict;
 
 @end

@@ -40,7 +40,6 @@
     _table.delegate = self;
     _table.dataSource = self;
     [self.view addSubview:_table];
-    
     _arr = [NSMutableArray arrayWithObjects:@"钱包",@"公文包",@"宠物",@"小孩",@"老人",@"行李箱",@"其他", nil];
     
 }

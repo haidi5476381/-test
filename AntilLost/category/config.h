@@ -28,6 +28,7 @@ CG_INLINE void AlertWithMessage(NSString *message)
     NSString *currentLanguage = [languages objectAtIndex:0];
     if ([currentLanguage isEqualToString:@"zh-Hans"])
     {
+        
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"" message:message delegate:nil cancelButtonTitle:@"确定" otherButtonTitles:nil, nil];
         [alert show];
     }

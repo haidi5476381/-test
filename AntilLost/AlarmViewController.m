@@ -21,6 +21,7 @@
 @end
 
 @implementation AlarmViewController
+@synthesize dict;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -193,6 +194,11 @@
     {
         AlertWithMessage(@"信息保存成功");
     }
+    
+    
+    [dict setValue:[NSNumber numberWithInteger:[Global getInstance].duankailingsheng] forKey:@"duankailingsheng"];
+    [dict setValue:[NSNumber numberWithInteger:[Global getInstance].chaojulishneg] forKey:@"chaojulishneg"];
+    
 
 }
 - (void)didReceiveMemoryWarning
