@@ -47,7 +47,7 @@
 {
     [super viewDidLoad];
 
-    NSMutableDictionary* beforeSavDict = [[NSUserDefaults standardUserDefaults] objectForKey:@"save"];
+    NSMutableDictionary* beforeSavDict = [NSMutableDictionary dictionaryWithDictionary:[[NSUserDefaults standardUserDefaults] objectForKey:@"save"]];
     if (beforeSavDict) {
         saveDict = beforeSavDict;
     }else  {
@@ -174,12 +174,12 @@
     /**
      * 保存外设的名字根据uuid add by haidi
      */
-   
 
     [saveDict setValue:[NSNumber numberWithBool:model.isShake] forKey:@"isShake"];
     [saveDict setValue:[NSNumber numberWithBool:model.isRing] forKey:@"isRing"];
     
     [[NSUserDefaults standardUserDefaults] setValue:saveDict forKey:@"save"];
+
     [[NSUserDefaults standardUserDefaults] setObject:_perName.text forKey:per.identifier.UUIDString];
     [[NSUserDefaults standardUserDefaults] synchronize];
  
