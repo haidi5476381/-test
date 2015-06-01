@@ -1477,6 +1477,69 @@
             //            [self toRing];
             [self playMusic];
             
+        }else {
+            
+            if ([Global getInstance].peripheralList.count > 0)
+            {
+                for (NSMutableDictionary *dic  in [Global getInstance].peripheralList)
+                {
+                    
+                    CBPeripheral * p = [dic objectForKey:@"device"];
+                    if (_peripheral.identifier == p.identifier)
+                    {
+                        SetModel * model = [dic objectForKey:@"model"];
+                        if (model!= nil)
+                        {
+                            if (model.isRing == NO)
+                            {
+                                
+                            }
+                            else
+                            {
+                                [self toRing];
+                            }
+                            
+                            if (model.isShake == NO)
+                            {
+                                
+                            }
+                            else
+                            {
+                                [self toShark];
+                            }
+                            
+                            
+                        }else if (saveDict) {
+                            
+                            BOOL isRing = [[saveDict valueForKey:@"isRing"] boolValue];
+                            BOOL isShake = [[saveDict valueForKey:@"isShake"] boolValue];
+                            if (isRing) {
+                                [self toRing];
+                            }
+                            if (isShake) {
+                                [self toShark];
+                            }
+                            
+                        }
+                        else
+                        {
+                            [self toRing];
+                            [self toShark];
+                            
+                        }
+                        
+                        
+                    }
+                }
+                
+            }
+            else
+            {
+                [self toRing];
+                [self toShark];
+                
+            }
+
         }
         
         
@@ -1486,67 +1549,6 @@
             NSData *mes = [NSData dataWithBytes:&data length:1];
             NSLog(@"%@",mes);
             [_peripheral writeValue:mes forCharacteristic:_writeCharacteristic type:CBCharacteristicWriteWithoutResponse];
-            
-        }
-        
-        if ([Global getInstance].peripheralList.count > 0)
-        {
-            for (NSMutableDictionary *dic  in [Global getInstance].peripheralList)
-            {
-                
-                CBPeripheral * p = [dic objectForKey:@"device"];
-                if (_peripheral.identifier == p.identifier)
-                {
-                    SetModel * model = [dic objectForKey:@"model"];
-                    if (model!= nil)
-                    {
-                        if (model.isRing == NO)
-                        {
-                            
-                        }
-                        else
-                        {
-                            [self toRing];
-                        }
-                        
-                        if (model.isShake == NO)
-                        {
-                            
-                        }
-                        else
-                        {
-                            [self toShark];
-                        }
-                        
-                        
-                    }else if (saveDict) {
-                        
-                        BOOL isRing = [[saveDict valueForKey:@"isRing"] boolValue];
-                        BOOL isShake = [[saveDict valueForKey:@"isShake"] boolValue];
-                        if (isRing) {
-                            [self toRing];
-                        }
-                        if (isShake) {
-                            [self toShark];
-                        }
-                        
-                    }
-                    else
-                    {
-                        [self toRing];
-                        [self toShark];
-                        
-                    }
-                    
-                    
-                }
-            }
-            
-        }
-        else
-        {
-            [self toRing];
-            [self toShark];
             
         }
         
@@ -2043,13 +2045,14 @@
                     }
                     else
                     {
+                        [self toRing];
                         
-                        AudioServicesDisposeSystemSoundID(soundId);
-                        NSString *musicPath = [[NSBundle mainBundle] pathForResource:@"电子警报音效" ofType:@"mp3"];//以前文件名为 “电子警报音效”
-                        
-                        // SystemSoundID soundId;
-                        AudioServicesCreateSystemSoundID((__bridge CFURLRef)[NSURL fileURLWithPath:musicPath], &soundId);
-                        AudioServicesPlaySystemSound(soundId);
+//                        AudioServicesDisposeSystemSoundID(soundId);
+//                        NSString *musicPath = [[NSBundle mainBundle] pathForResource:@"电子警报音效" ofType:@"mp3"];//以前文件名为 “电子警报音效”
+//                        
+//                        // SystemSoundID soundId;
+//                        AudioServicesCreateSystemSoundID((__bridge CFURLRef)[NSURL fileURLWithPath:musicPath], &soundId);
+//                        AudioServicesPlaySystemSound(soundId);
                         //震动
                     }
                     
@@ -2059,9 +2062,9 @@
                     }
                     else
                     {
-                        //                    [self toShark];
+                                        [self toShark];
                         //震动
-                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+//                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
                     }
                     
                     
@@ -2070,31 +2073,34 @@
                     BOOL isRing = [[saveDict valueForKey:@"isRing"] boolValue];
                     BOOL isShake = [[saveDict valueForKey:@"isShake"] boolValue];
                     if (isRing) {
-                        AudioServicesDisposeSystemSoundID(soundId);
-                        NSString *musicPath = [[NSBundle mainBundle] pathForResource:@"电子警报音效" ofType:@"mp3"];//以前文件名为 “电子警报音效”
-                        
-                        // SystemSoundID soundId;
-                        AudioServicesCreateSystemSoundID((__bridge CFURLRef)[NSURL fileURLWithPath:musicPath], &soundId);
-                        AudioServicesPlaySystemSound(soundId);
+                        [self toRing];
+//                        AudioServicesDisposeSystemSoundID(soundId);
+//                        NSString *musicPath = [[NSBundle mainBundle] pathForResource:@"电子警报音效" ofType:@"mp3"];//以前文件名为 “电子警报音效”
+//                        
+//                        // SystemSoundID soundId;
+//                        AudioServicesCreateSystemSoundID((__bridge CFURLRef)[NSURL fileURLWithPath:musicPath], &soundId);
+//                        AudioServicesPlaySystemSound(soundId);
                         //震动
                     }
                     if (isShake) {
-                        //                    [self toShark];
+                                           [self toShark];
                         //震动
-                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+//                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
                     }
                 }
                 else
                 {
+                    [self toRing];
+                    [self toShark];
                     
-                    AudioServicesDisposeSystemSoundID(soundId);
-                    NSString *musicPath = [[NSBundle mainBundle] pathForResource:@"电子警报音效" ofType:@"mp3"];//以前文件名为 “电子警报音效”
-                    //  SystemSoundID soundId;
-                    AudioServicesCreateSystemSoundID((__bridge CFURLRef)[NSURL fileURLWithPath:musicPath], &soundId);
-                    AudioServicesPlaySystemSound(soundId);
-                    //震动
-                    AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
-                    
+//                    AudioServicesDisposeSystemSoundID(soundId);
+//                    NSString *musicPath = [[NSBundle mainBundle] pathForResource:@"电子警报音效" ofType:@"mp3"];//以前文件名为 “电子警报音效”
+//                    //  SystemSoundID soundId;
+//                    AudioServicesCreateSystemSoundID((__bridge CFURLRef)[NSURL fileURLWithPath:musicPath], &soundId);
+//                    AudioServicesPlaySystemSound(soundId);
+//                    //震动
+//                    AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+//                    
                 }
                 
                 
